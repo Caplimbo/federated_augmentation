@@ -2,7 +2,6 @@ import numpy as np
 import torch.nn as nn
 import torch
 from federated.client import Client
-from collections import defaultdict
 from tqdm import tqdm
 
 
@@ -22,13 +21,9 @@ class Server:
     def select_clients(self, my_round, num_clients=3):
         np.random.seed(my_round)
         selected_clients = np.random.choice(self.clients, num_clients, replace=False)
-        #print(f"round {my_round}, selected_clients:{[client.id for client in selected_clients]}")
         return selected_clients
 
     def train(self, selected_clients, num_epochs=3, batch_size=16):
-        #  def train_gan():
-
-        # print(f"selected clients: {[selected_client.id for selected_client in selected_clients]}")
         total_weight = 0
         self.model.train()
         sum_state_dict = None
@@ -43,27 +38,15 @@ class Server:
                 local=False,
             )
             total_weight += weight
-            # total_weight += 1
             if sum_state_dict is None:
-                # print("initializing!")
                 sum_state_dict = new_state_dict
                 for var in new_state_dict:
-                    try:
-                        sum_state_dict[var] *= weight
-                    except:
-                        print(f"Problem var is {var}")
-                        exit()
-                    # sum_state_dict[var] *= torch.tensor(weight).type_as(sum_state_dict[var])
+                    sum_state_dict[var] *= weight
             else:
-                # print("updating!")
                 for var in sum_state_dict:
                     sum_state_dict[var] = sum_state_dict[var] + new_state_dict[var] * weight
         for var in sum_state_dict:
             sum_state_dict[var] /= total_weight
-        # print(self.model_state.keys())
-        # print("-----")
-        # print(sum_state_dict.keys())
-        # assert self.model_state.keys == sum_state_dict.keys()
         self.model_state = sum_state_dict
 
 

@@ -87,9 +87,7 @@ class Discriminator(nn.Module):
     # forward method
     def forward(self, inputs, labels):
         inputs = inputs.view(-1, 1, 28, 28)
-        # print(labels.shape)
         embedding = self.embed(labels).view(-1, self.embedding_dim, 28, 28)
-        # print(embedding.shape)
         x = torch.cat([inputs, embedding], 1)
         x = self.seq(x)
         x = self.fc(x)

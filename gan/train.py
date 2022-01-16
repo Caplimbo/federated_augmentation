@@ -24,7 +24,6 @@ class Trainer():
                  num_workers=1):
         # load dataset
         transformation = transforms.Compose([
-            # transforms.Scale(64),
             transforms.RandomHorizontalFlip(p=1),
             transforms.RandomRotation(degrees=(90, 90)),
             transforms.ToTensor(),
@@ -134,10 +133,8 @@ class Trainer():
                     was_loss = (d_loss_fake + d_loss_real) + lmbda_gp * gp
                     was_loss.backward()
                     self.optimizer_d.step()
-                    # print(f"d_loss: {d_loss}")
                     w_loss += was_loss.item()
                     dis_loss += ddd_loss.item()
-                    # print(f"dis_loss: {dis_loss}")
 
                 # train Generator
                 self.optimizer_g.zero_grad()

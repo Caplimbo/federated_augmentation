@@ -82,8 +82,6 @@ class Trainer:
             self.loss_func = nn.BCEWithLogitsLoss()
 
         self.optimizer = optim.SGD(self.model.parameters(), lr=lr, momentum=0.9)
-        # self.optimizer = optim.AdamW(self.model.parameters(), lr=lr, betas=(0.5, 0.999), weight_decay=1e-5)
-        # self.optimizer = optim.Adam(self.model.parameters(), lr=lr, betas=(0.8, 0.999))
 
     def train(self, epochs, path):
         os.makedirs(path, exist_ok=True)
@@ -95,16 +93,13 @@ class Trainer:
             for texts, labels in tqdm(
                 self.train_data_loader, desc=f"Epoch {epoch}, Training..."
             ):
-                # print(texts, labels)
                 texts, labels = texts.to(self.device), labels.to(self.device)
                 self.optimizer.zero_grad()
                 preds = self.model(texts)
-                # print(images[0])
                 if self.num_classes == 5:
                     loss = self.loss_func(preds, labels)
                 else:
                     loss = self.loss_func(torch.flatten(preds), labels.float())
-                # print(f"loss: {loss}")
                 loss.backward()
                 self.optimizer.step()
                 train_loss.append(loss.item())
@@ -143,7 +138,6 @@ class Trainer:
                 f"Epoch {epoch}: Train Loss: {train_avg_loss:.4f}, Test Loss: {test_avg_loss:.4f}, Test Acc: {test_acc:.4f}"
             )
 
-            # if (epoch + 1) % 2 == 0:
             f.write(
                 f"Epoch {epoch+1}: Train Loss: {train_avg_loss:.4f}, Test Loss: {test_avg_loss:.4f}, Test Acc: {test_acc:.4f}"
             )

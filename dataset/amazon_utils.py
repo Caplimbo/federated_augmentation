@@ -74,7 +74,6 @@ def split_dataset(full_dct, train_size=TRAIN_TEST_RATIO):
 
 
 def find_labels_to_transfer(labels, ratio: float = 1):
-    #  TODO: Just make labels align(or /2)
     target_num = math.ceil(max([labels.count(i+1) for i in range(5)]) * ratio)
     to_generate = []
     for i in range(1, 6):
@@ -110,34 +109,7 @@ def make_client_dataset(data_pairs, text_pipeline, label_pipeline, usage="tune",
 
 def find_texts_to_transfer(data_pairs, label_pipeline):
     labels = [item[1] for item in data_pairs]
-    # return labels
     return find_labels_to_transfer(labels, 1)
-    '''
-    # print(f"labels counts: {label_count}")
-
-
-    # # TODO: Shall we just find the compliment labels based on rating 5.0?
-    # # normalized_label_count = [count/base for count, base in zip(label_count, STATUS)]
-    # target_index = 4
-    # normalized_max_num = label_count[target_index] / STATUS[target_index]
-    #
-    # # normalized_max_num = max(normalized_label_count)
-    # # target_index = normalized_label_count.index(normalized_max_num)
-    # target_num = [max(math.floor(status * normalized_max_num), 1) for status in STATUS]
-    # compliment_labels = [target - current for target, current in zip(target_num, label_count)]
-    # # compliment_labels[target_index] = 0
-    #
-    # #  TODO: Shall we just simply "do not" augment rating 5.0?
-    # to_generate = []
-    # for i, num in enumerate(compliment_labels):
-    #     to_generate.extend([i+1] * num)
-
-    target_num = math.ceil(max([labels.count(i+1) for i in range(5)]) / 1)
-    to_generate = []
-    for i in range(1, 6):
-        to_generate.extend([i] * max(target_num - labels.count(i), 0))
-    # print(to_generate)
-    '''
 
     neg_num = labels.count(0) + labels.count(1) + labels.count(3)
     pos_num = labels.count(4) + labels.count(5)
@@ -151,19 +123,8 @@ def find_texts_to_transfer(data_pairs, label_pipeline):
     return to_generate
 
 def incorporate_augment_and_make_client_dataset(data_pairs, text_pipeline, label_pipeline, augment_data):
-    # print(augment_data)
-
     texts = [item[0] for item in data_pairs] + augment_data[0]
     labels = [item[1] for item in data_pairs] + augment_data[1]
-
-    # print(f"texts: {texts}")
-    # print(f"labels: {labels}")
-    # processed_labels = [label_pipeline(label) for label in labels]
-    #
-    # processed_texts = pad_sequence([text_pipeline(text) for text in texts], batch_first=True)
-    # processed_labels = torch.tensor(processed_labels, dtype=torch.int64)
-    # # print(processed_labels, processed_texts)
-    # dataset = TensorDataset(processed_texts, processed_labels)
     dataset = MyDataset(texts, labels)
     return dataset
 
