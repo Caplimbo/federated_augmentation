@@ -1,7 +1,6 @@
 import torch
 import torchvision
 import numpy as np
-import time
 import matplotlib.pyplot as plt
 import argparse
 import torch.optim as optim
@@ -93,13 +92,10 @@ class Trainer:
             for images, labels in tqdm(
                 self.train_data_loader, desc=f"Epoch {epoch}, Training..."
             ):
-                # print(texts, labels)
                 images, labels = images.to(self.device), labels.to(self.device)
                 self.optimizer.zero_grad()
                 preds = self.model(images)
-                # print(images[0])
                 loss = self.loss_func(preds, labels)
-                # print(f"loss: {loss}")
                 loss.backward()
                 train_loss.append(loss.item())
                 self.optimizer.step()

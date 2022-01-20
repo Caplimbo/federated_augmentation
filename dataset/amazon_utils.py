@@ -1,12 +1,8 @@
 import json
 from collections import defaultdict
 from typing import List, Dict
-import os
-import torch
-import torch.nn as nn
-from torch.nn.utils.rnn import pad_sequence
 from sklearn.model_selection import train_test_split
-from torch.utils.data import TensorDataset, DataLoader, Dataset
+from torch.utils.data import Dataset
 from tqdm import tqdm
 import numpy as np
 import math
@@ -52,11 +48,8 @@ def inspect_data_statistics(full_dct: Dict):
         for entry in value:
             score = int(entry[1]) - 1
             status[score] += 1
-    # global STATUS
-    # STATUS = status
     print(status)
     print(f">=3: {sum(status[3:])}, <3: {sum(status[:3])}, fraction: {sum(status[3:]) / sum(status)}")
-    # exit()
 
 def check_label_distribution(labels):
     result = [labels.count(i+1) for i in range(5)]

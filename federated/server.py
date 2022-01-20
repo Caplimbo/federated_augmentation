@@ -10,8 +10,6 @@ class Server:
             self, model, clients: [Client], loss_func=nn.CrossEntropyLoss(), lr=1e-4, tune_lr=1e-2
     ):
         self.model = model
-        # self.gen_model = gen_model
-        # self.dis_model = dis_model
         self.optimizer = torch.optim.SGD(self.model.parameters(), lr=lr)
         self.tune_optimizer = torch.optim.SGD(self.model.parameters(), lr=tune_lr)
         self.loss_func = loss_func

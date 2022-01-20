@@ -1,5 +1,4 @@
 import torch
-import torch.nn as nn
 from gan.mymodel import Generator, Discriminator
 
 
@@ -60,7 +59,6 @@ class CGAN_DataGenerator:
         taken_images, taken_labels = generated_images.cpu().detach()[selected], labels.cpu().detach()[selected]
         left_labels = labels[left]
         torch.cuda.empty_cache()
-        # print(f"scores this time: {score}")
         return taken_images, taken_labels, left_labels
 
     def load_weight(self, generator_weight_path, discriminator_weight_path):

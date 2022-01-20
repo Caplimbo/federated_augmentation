@@ -33,32 +33,13 @@ class RNN(nn.Module):
                 nn.init.zeros_(m.bias.data)
 
     def forward(self, text):
-        # text = [sent len, batch size]
-
-        # embedded = self.dropout(self.embedding(text))
-        # print(embedded.shape)
-        # embedded = text
-        # embedded = [sent len, batch size, emb dim]
 
         embedded = self.dropout(text)
         packed_embedded = nn.utils.rnn.pack_padded_sequence(embedded,
                                                             lengths=[int(embedded.size()[1])] * len(embedded), batch_first=True)
-        # print("packed_embedding shape: ", packed_embedded)
         packed_output, (hidden, cell) = self.rnn(packed_embedded)
 
-        # packed_output, (hidden, cell) = self.rnn(text)
-        # unpack sequence
-        # output, output_lengths = nn.utils.rnn.pad_packed_sequence(packed_output, batch_first=True)
-
-        # output = [sent len, batch size, hid dim * num directions]
-        # output over padding tokens are zero tensors
-
-        # hidden = [num layers * num directions, batch size, hid dim]
-        # cell = [num layers * num directions, batch size, hid dim]
-
-        # concat the final forward (hidden[-2,:,:]) and backward (hidden[-1,:,:]) hidden layers
-        # and apply dropout
-
+        # apply dropout
         hidden = self.dropout(torch.cat((hidden[-2, :, :], hidden[-1, :, :]), dim=1))
 
         # hidden = [batch size, hid dim * num directions]

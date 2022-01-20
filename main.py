@@ -2,7 +2,6 @@ import os
 import random
 
 import numpy as np
-import torch
 from federated import Client, Server
 from dataset.data_utils import read_data
 from models.femnist import *
@@ -58,13 +57,7 @@ def main():
     os.makedirs(args.save_dir, exist_ok=True)
     os.makedirs(args.save_dir+"_NoTune", exist_ok=True)
     os.makedirs(args.save_dir+"_WithTune", exist_ok=True)
-    # f = open(args.save_dir+'/log.txt', 'w')
-    # f.close()
-    # f = open(args.save_dir+"/all_clients.txt", 'w')
-    # f.close()
     for round in tqdm(range(args.num_rounds), desc="Round"):
-        # if round > 500:
-        #     server.change_lr(args.lr/10, "train")
         selected_clients = server.select_clients(round, args.clients_per_round)
         server.train(selected_clients, args.num_epochs, batch_size=args.batch_size)
 
@@ -78,7 +71,6 @@ def main():
                     f.write(f'{acc:.4f} {weight} {id}\t')
                 f.write('\n')
             train_acc, test_acc, full_test_acc = server.test(batch_size=args.batch_size, use_tune=args.use_tune)
-            # test_acc = server.test(batch_size=args.batch_size, usage="test")
             print(f"Round {round+1}, With Tune, train accuracy: {train_acc:.4f}, test accuracy: {test_acc}")
             with open(args.save_dir+"_WithTune"+'/log.txt', 'a') as f:
                 f.write(f"{train_acc:.4f}\t{test_acc:.4f}\n")

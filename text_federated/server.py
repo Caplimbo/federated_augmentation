@@ -25,13 +25,8 @@ class Server:
         task="amazon"
     ):
         self.model = model
-        # self.gen_model = gen_model
-        # self.dis_model = dis_model
         self.optimizer = torch.optim.SGD(model.parameters(), lr=lr)
-        # self.model, self.optimizer = amp.initialize(model, optimizer, opt_level="O0")
-        # print("AMP: ", amp.state_dict())
         self.tune_optimizer = torch.optim.SGD(model.parameters(), lr=tune_lr)
-        #  _, self.tune_optimizer = amp.initialize(model, tune_optimizer, opt_level="O2")
         self.loss_func = loss_func
         self.clients = clients
         self.model_state = model.state_dict()
@@ -57,7 +52,6 @@ class Server:
         sum_state_dict = None
         all_loss = []
         for (i, client) in enumerate(selected_clients):
-            # gpu_tracker.track()
             new_state_dict, weight, loss = client.train(
                 self.model,
                 self.model_state,
@@ -70,52 +64,29 @@ class Server:
                 local=False,
                 augment_data=augment_samples[i] if augment_samples else None
             )
-            # print("weight is: ", weight)
             all_loss.append(loss)
             total_weight += weight
-            # total_weight += 1
             if sum_state_dict is None:
                 sum_state_dict = {}
-                # sum_state_dict = new_state_dict
                 for var in new_state_dict:
                     if var == "embedding.weight":
                         continue
-                    # sum_state_dict[var] *= 1
-                    # sum_state_dict[var] = new_state_dict[var].detach().cpu() * weight
 
                     sum_state_dict[var] = new_state_dict[var] * weight
                     # sum_state_dict[var] *= torch.HalfTensor([1.0]).to("cuda")#.type_as(sum_state_dict[var])
-                #     '''
-                #     try:
-                #         sum_state_dict[var] *= torch.HalfTensor(weight).type_as(sum_state_dict[var])
-                #         #  sum_state_dict[var] *= weight.half()
-                #     except:
-                #         print(f"Problem var is {var}")
-                #         exit()
-                #     '''
 
             else:
-                # print("updating!")
                 for var in sum_state_dict:
                     if var == "embedding.weight":
                         continue
-                    # print(new_state_dict[var].dtype)
                     sum_state_dict[var] = (
                         sum_state_dict[var] + new_state_dict[var] * weight
                     )
                     # sum_state_dict[var] = sum_state_dict[var] + new_state_dict[var].detach().cpu() * weight
 
-                    # sum_state_dict[var] = sum_state_dict[var] + new_state_dict[var] * torch.HalfTensor([1.0]).to("cuda")
-
             torch.cuda.empty_cache()
         for var in sum_state_dict:
             sum_state_dict[var] /= total_weight
-            # sum_state_dict[var] /= torch.HalfTensor([total_weight*1.0]).to("cuda")
-            # sum_state_dict[var] = sum_state_dict[var].cuda()
-        # print(self.model_state.keys())
-        # print("-----")
-        # print(sum_state_dict.keys())
-        # assert self.model_state.keys == sum_state_dict.keys()
         sum_state_dict["embedding.weight"] = new_state_dict["embedding.weight"]
         self.model_state = sum_state_dict
         avg_loss = np.mean(np.array(all_loss))
@@ -132,7 +103,6 @@ class Server:
         transferred = []
         for index in range(0, len(texts_to_transfer), 64):
             to_transfer = texts_to_transfer[index: index + 64]
-            # assert self.task in ['yelp', 'amazon']
             if self.task == "yelp":
                 batch_result = transfer_sentiment(to_transfer)
             else:

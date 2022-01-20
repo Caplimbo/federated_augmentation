@@ -1,10 +1,6 @@
-import warnings
-import numpy as np
 import torch
 from torch.utils.data import DataLoader
-import torch.nn as nn
 from dataset.amazon_utils import make_client_dataset, find_texts_to_transfer, incorporate_augment_and_make_client_dataset
-from sklearn.metrics import roc_auc_score
 from torch.nn.utils.rnn import pad_sequence
 
 class Client:
@@ -42,10 +38,8 @@ class Client:
 
     def train(self, model, base_state, text_pipeline, label_pipeline, optimizer, loss_func, num_epochs=1, batch_size=16, local=True, augment_data=None):
         model.load_state_dict(base_state, strict=True)
-        # model.cuda()
         model.train()
         loss_func = loss_func.to(self.device)
-        # print(f"Model on cuda? {next(model.parameters()).is_cuda}")
 
         if not local:
             train_data_loader, length = self.prepare_client_data(text_pipeline, label_pipeline, usage='global', batch_size=batch_size, augment_data=augment_data)
@@ -54,15 +48,11 @@ class Client:
         for epoch in range(num_epochs):
             all_loss = []
             for texts, labels in train_data_loader:
-                # texts, labels = texts.half().to(self.device), labels.half().to(self.device)
                 texts, labels = texts.to(self.device), labels.to(self.device)
                 optimizer.zero_grad()
                 preds = model(texts)
-                # print(preds, labels)
                 loss = loss_func(preds, labels)
                 # loss = loss_func(torch.flatten(preds), labels.float())
-                # with amp.scale_loss(loss, optimizer) as scaled_loss:
-                #     scaled_loss.backward()
                 loss.backward()
                 optimizer.step()
                 all_loss.append(loss.item())
@@ -77,15 +67,11 @@ class Client:
             tune_data_loader, _ = self.prepare_client_data(text_pipeline, label_pipeline, usage="tune", batch_size=batch_size)
             model.train()
             for texts, labels in tune_data_loader:
-                # texts, labels = texts.half().to(self.device), labels.half().to(self.device)
                 texts, labels = texts.to(self.device), labels.to(self.device)
                 optimizer.zero_grad()
                 preds = model(texts)
-                # print("Preds: ",preds)
                 loss = loss_func(preds, labels)
                 # loss = loss_func(torch.flatten(preds), labels.float())
-                # with amp.scale_loss(loss, optimizer) as scaled_loss:
-                #     scaled_loss.backward()
                 loss.backward()
                 optimizer.step()
         eval_data_loader, eval_length = self.prepare_client_data(text_pipeline, label_pipeline, usage="eval", batch_size=128)
@@ -99,23 +85,13 @@ class Client:
         correct, sum = 0, 0
         with torch.no_grad():
             for texts, labels in data_loader:
-                # texts, labels = texts.half().to(self.device), labels
                 texts, labels = texts.to(self.device), labels
                 preds = model(texts)
                 preds = preds.detach().cpu()
-                # try:
-                #     AUC = roc_auc_score(y_true=labels, y_score=preds)
-                #     print(f"AUC is {AUC}")
-                # except ValueError:
-                #     pass
-                # print(f"preds are {preds}")
                 # preds = torch.where(preds.flatten() > 0.5, 1, 0)
                 preds = torch.argmax(preds, dim=1)
-                # print(f"preds are {preds}, labels are {labels}")
                 # preds = torch.argmax(preds, dim=1)
-                # print((preds == labels))
                 correct += (preds == labels).sum().item()
                 sum += labels.size(0)
 
-        # print(f"correct: {correct}, sum: {sum}")
         return correct / sum

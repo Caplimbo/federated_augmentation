@@ -1,6 +1,5 @@
 import json
 import os
-import numpy as np
 from collections import defaultdict
 import torch
 from torch.utils.data import TensorDataset, DataLoader

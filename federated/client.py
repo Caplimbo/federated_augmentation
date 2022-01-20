@@ -27,11 +27,9 @@ class Client:
             return DataLoader(dataset, batch_size=batch_size, shuffle=True), len(dataset)
 
     def train(self, model, base_state, optimizer, loss_func, num_epochs=1, batch_size=16, local=True):
-        # optimizer = optimizer.to(self.device)
         model.load_state_dict(base_state, strict=True)
         model.train()
         loss_func = loss_func.to(self.device)
-        # all_loss = []
         if not local:
             train_data_loader, length = self.prepare_client_data(usage='global', batch_size=batch_size)
         else:

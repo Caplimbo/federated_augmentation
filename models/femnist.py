@@ -20,7 +20,6 @@ class CNN(nn.Module):
     def forward(self, x):
         x = x.view(-1, 1, 28, 28)
         x = self.conv(x)
-        # print(x.shape)
         x = x.view(-1, 7 * 7 * 64)
         x = self.fc(x)
         return x

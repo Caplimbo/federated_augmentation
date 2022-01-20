@@ -1,6 +1,5 @@
 import os
 import random
-from torchtext.vocab import GloVe
 from torchtext.data.utils import get_tokenizer
 import numpy as np
 import torch
@@ -40,7 +39,6 @@ def main():
     # load the model
     Model = eval(args.model)
     model = Model(output_dim=args.num_classes)
-    # model.half()
     model.init_weight()
     try:
         model.load_state_dict(torch.load(args.save_dir + '/weights_50000.pt'))
@@ -62,11 +60,8 @@ def main():
 
     # initialize pipelines
     vec = GloVe(cache="dataset/amazon_reviews")
-    # print(vec.stoi)
     tokenizer = get_tokenizer("spacy", language="en_core_web_lg")
-    # print(list(vec.stoi.keys())[0])
     text_pipeline = lambda x: vec.get_vecs_by_tokens(tokenizer(x.lower()))
-    # text_pipeline = lambda x: torch.IntTensor([vec.stoi[token] for token in tokenizer(x) if token in vec.stoi])
     if args.num_classes <= 2:
         label_pipeline = lambda x: 1 if x > 3 else 0
     else:
@@ -92,8 +87,6 @@ def main():
     # f = open(args.save_dir + "/all_clients.txt", "w")
     # f.close()
 
-
-    all_loss = []
     for round in tqdm(range(args.num_rounds), desc="Round"):
         # if round > 500:
         #     server.change_lr(args.lr/10, "train")
