@@ -3,7 +3,6 @@ import os
 import pandas as pd
 import numpy as np
 from scipy.stats import gaussian_kde
-from matplotlib.colors import LogNorm
 import matplotlib.ticker as ticker
 markers = ['.', ',', 'o', '*', '_', '1', 'v', '^', '<', '>', '1', '2']
 
@@ -33,13 +32,10 @@ def plot_figure(root, name, limit=60, scale=500, smooth_flag=False, range_y=[0.4
                 continue
             path = os.path.join(root, file)
 
-            print(path)
             centralized = (root.split("/")[-1] == 'Centralized')
             _, test_acc = get_data(path, centralized)
 
             mark = root.split("/")[-1]
-            print(label, test_acc)
-            print(len(test_acc))
             test_acc = test_acc[:limit]
             test_acc = [zero_acc] + test_acc
             if smooth_flag:
@@ -49,7 +45,6 @@ def plot_figure(root, name, limit=60, scale=500, smooth_flag=False, range_y=[0.4
             all_logs.append((test_acc, label))
     all_logs.sort(key=lambda x: x[0][-1], reverse=True)
     # plot_small_figure(name, all_logs, 5, scale)
-    #exit()
     x = np.arange(0, (limit+1) * scale, scale)
     plt.figure(figsize=(12, 9))
     plt.xlabel("Communication Rounds")
@@ -60,7 +55,6 @@ def plot_figure(root, name, limit=60, scale=500, smooth_flag=False, range_y=[0.4
 
     for acc, label in all_logs:
         # test_acc = smooth(test_acc, 0.8)
-        print(label)
         plt.plot(x, acc, label=f"{label}", marker=markers[index % len(markers)])
         index += 1
     plt.legend(prop={'size': 10})
@@ -71,17 +65,12 @@ def plot_figure(root, name, limit=60, scale=500, smooth_flag=False, range_y=[0.4
 def plot_small_figure(name, all_accs, final_count, scale):
     plt.figure(figsize=(3, 2))
     x = np.arange((len(all_accs[0][0]) - final_count) * scale, (len(all_accs[0][0])) * scale, scale)
-    print("x: ", x)
     x_label = np.arange((len(all_accs[0][0]) - final_count), len(all_accs[0][0]))
-    print("label: ", x_label)
     x_label *= scale
-    print("label: ", x_label)
-    print()
     plt.xticks(size=8)
     plt.yticks(size=7)
     index = 0
     for acc, label in all_accs:
-        print(acc[-final_count:],label)
         plt.plot(x, acc[-final_count:], label=f"{label}", marker=markers[index % len(markers)])
         index += 1
     plt.savefig(f"{name}_small.png")
@@ -164,7 +153,6 @@ def read_client_acc_data(path):
                 one_round.append((acc, weight, id))
             all_rounds_result.append(one_round)
             line = f.readline()
-    print(len(all_rounds_result))
     return all_rounds_result
 
 
@@ -199,9 +187,7 @@ def plot_loss_figure(root, name, smooth_factor=0.6):
             if file[-5] != 'd':
                 continue
             path = os.path.join(root, file)
-            print(path)
             train_loss = read_loss_data(path)
-            print(train_loss)
             train_loss = smooth(train_loss, smooth_factor)
             mark = root.split("/")[-1]
             if root.split('/')[-1][0] == 'f' and root.split('/')[-1][7] == 'w':
@@ -218,7 +204,7 @@ def plot_loss_figure(root, name, smooth_factor=0.6):
     plt.close()
 
 
-def smooth(data_list, weight=0.85): #weight是平滑度，tensorboard 默认0.6    last = scalar[0]
+def smooth(data_list, weight=0.85):  # weight是平滑度，tensorboard 默认0.6    last = scalar[0]
     smoothed = []
     last = data_list[0]
     for point in data_list:
@@ -239,10 +225,3 @@ if __name__ == "__main__":
     # plot_difference("result/only_digits/new/Augment_WithTune/all_clients.txt", "result/only_digits/new/FedAvg_WithTune/all_clients.txt", "femnist_digits", -0.15, 0.15, 0.02, index=40)
     # plot_difference("text_result/amazon_books/client10/Augment_WithTune/all_clients.txt", "text_result/amazon_books/client10/FedAvg_WithTune/all_clients.txt", "amazon_books", index=60)
 
-
-"""
-avg notune: 0.8504
-avg withtune: 0.8537
-augment notune: 0.8567
-augment withtune: 0.8644
-"""
