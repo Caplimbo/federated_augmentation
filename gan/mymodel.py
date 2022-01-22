@@ -1,13 +1,14 @@
 import torch
 import torch.nn as nn
 
+
 class Generator(nn.Module):
     # initializers
     def __init__(self, latent_size=100, class_size=10, embedding_dim=1):
         super(Generator, self).__init__()
-        self.embed = nn.Embedding(class_size, latent_size*embedding_dim)
+        self.embed = nn.Embedding(class_size, latent_size * embedding_dim)
         self.fc = nn.Sequential(
-            nn.Linear(latent_size + latent_size*embedding_dim, 3 * 3 * 256),
+            nn.Linear(latent_size + latent_size * embedding_dim, 3 * 3 * 256),
             nn.ReLU(inplace=True),
         )
 
@@ -30,7 +31,7 @@ class Generator(nn.Module):
         for m in self.modules():
             if isinstance(m, nn.ConvTranspose2d) or isinstance(m, nn.Conv2d):
                 nn.init.normal_(m.weight.data, 0, 0.02)
-                # nn.init.zeros_(m.bias.data)
+                nn.init.zeros_(m.bias.data)
 
     # forward method
     def forward(self, inputs, labels):
@@ -71,7 +72,6 @@ class Discriminator(nn.Module):
 
         self.fc = nn.Sequential(
             nn.Flatten(),
-            # nn.Dropout2d(0.25),
             nn.Linear(3 * 3 * 256, 1),
             nn.Sigmoid()
         )
@@ -82,7 +82,7 @@ class Discriminator(nn.Module):
         for m in self.modules():
             if isinstance(m, nn.ConvTranspose2d) or isinstance(m, nn.Conv2d):
                 nn.init.normal_(m.weight.data, 0, 0.02)
-                # nn.init.zeros_(m.bias.data)
+                nn.init.zeros_(m.bias.data)
 
     # forward method
     def forward(self, inputs, labels):

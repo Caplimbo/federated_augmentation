@@ -1,7 +1,9 @@
 import torch
 from torch.utils.data import DataLoader
-from dataset.amazon_utils import make_client_dataset, find_texts_to_transfer, incorporate_augment_and_make_client_dataset
+from dataset.amazon_utils import make_client_dataset, find_texts_to_transfer, \
+    incorporate_augment_and_make_client_dataset
 from torch.nn.utils.rnn import pad_sequence
+
 
 class Client:
 
@@ -31,20 +33,25 @@ class Client:
             return DataLoader(dataset, batch_size=batch_size, shuffle=False, collate_fn=collate_fn), len(dataset)
         else:
             if augment_data:
-                dataset = incorporate_augment_and_make_client_dataset(self.train_data, text_pipeline, label_pipeline, augment_data)
+                dataset = incorporate_augment_and_make_client_dataset(self.train_data, text_pipeline, label_pipeline,
+                                                                      augment_data)
             else:
-                dataset = make_client_dataset(self.train_data, text_pipeline, label_pipeline, usage=usage, augment=self.augment)
+                dataset = make_client_dataset(self.train_data, text_pipeline, label_pipeline, usage=usage,
+                                              augment=self.augment)
             return DataLoader(dataset, batch_size=batch_size, shuffle=True, collate_fn=collate_fn), len(dataset)
 
-    def train(self, model, base_state, text_pipeline, label_pipeline, optimizer, loss_func, num_epochs=1, batch_size=16, local=True, augment_data=None):
+    def train(self, model, base_state, text_pipeline, label_pipeline, optimizer, loss_func, num_epochs=1, batch_size=16,
+              local=True, augment_data=None):
         model.load_state_dict(base_state, strict=True)
         model.train()
         loss_func = loss_func.to(self.device)
 
         if not local:
-            train_data_loader, length = self.prepare_client_data(text_pipeline, label_pipeline, usage='global', batch_size=batch_size, augment_data=augment_data)
+            train_data_loader, length = self.prepare_client_data(text_pipeline, label_pipeline, usage='global',
+                                                                 batch_size=batch_size, augment_data=augment_data)
         else:
-            train_data_loader, length = self.prepare_client_data(text_pipeline, label_pipeline, usage='tune', batch_size=batch_size)
+            train_data_loader, length = self.prepare_client_data(text_pipeline, label_pipeline, usage='tune',
+                                                                 batch_size=batch_size)
         for epoch in range(num_epochs):
             all_loss = []
             for texts, labels in train_data_loader:
@@ -64,7 +71,8 @@ class Client:
         model.load_state_dict(state)
         # first do local finetune
         if use_tune:
-            tune_data_loader, _ = self.prepare_client_data(text_pipeline, label_pipeline, usage="tune", batch_size=batch_size)
+            tune_data_loader, _ = self.prepare_client_data(text_pipeline, label_pipeline, usage="tune",
+                                                           batch_size=batch_size)
             model.train()
             for texts, labels in tune_data_loader:
                 texts, labels = texts.to(self.device), labels.to(self.device)
@@ -74,8 +82,10 @@ class Client:
                 # loss = loss_func(torch.flatten(preds), labels.float())
                 loss.backward()
                 optimizer.step()
-        eval_data_loader, eval_length = self.prepare_client_data(text_pipeline, label_pipeline, usage="eval", batch_size=128)
-        test_data_loader, test_length = self.prepare_client_data(text_pipeline, label_pipeline, usage="test", batch_size=128)
+        eval_data_loader, eval_length = self.prepare_client_data(text_pipeline, label_pipeline, usage="eval",
+                                                                 batch_size=128)
+        test_data_loader, test_length = self.prepare_client_data(text_pipeline, label_pipeline, usage="test",
+                                                                 batch_size=128)
         eval_acc = self.compute_accuracy(model, eval_data_loader)
         test_acc = self.compute_accuracy(model, test_data_loader)
         return eval_acc, test_acc, eval_length, test_length
